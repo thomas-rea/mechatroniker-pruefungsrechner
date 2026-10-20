@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Interaktiver Rechner zur gestreckten Abschlussprüfung Mechatroniker:in nach § 8 MechatronikerAusbV.">
+  <title>Prüfungsrechner Mechatroniker:in | TAP 1 + TAP 2</title>
+  <style>
+    :root {
+      --ink: #172a3c;
+      --muted: #627486;
+      --brand: #17677a;
+      --brand-light: #dff2f4;
+      --border: #dce6ec;
+      --surface: #fff;
+      --surface-alt: #f5f8fa;
+      --good: #147d59;
+      --good-bg: #e7f8ef;
+      --bad: #b53c3c;
+      --bad-bg: #fff0ed;
+      --warn: #a1630a;
+      --warn-bg: #fff4df;
+      --shadow: 0 18px 48px rgba(20, 44, 64, .07);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--ink); background: #eef3f6; line-height: 1.5; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #4fb8ce; outline-offset: 2px; }
+    a { color: #11677e; }
+    .hero { background: linear-gradient(116deg, #132f47, #155b6b 76%, #187d86); color: #fff; padding: 34px 20px 72px; }
+    .hero-inner { max-width: 1140px; margin: 0 auto; }
+    .eyebrow { font-size: .8rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: #b8e8e8; }
+    h1 { font-size: clamp(1.9rem, 4vw, 2.65rem); margin: 9px 0 8px; letter-spacing: -.04em; line-height: 1.12; }
+    .hero p { color: #d6eaf0; margin: 0; max-width: 730px; }
+    .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 17px; }
+    .hero-tags span { border: 1px solid rgba(230,255,255,.25); border-radius: 30px; font-size: .79rem; padding: 5px 11px; color: #e9ffff; background: rgba(255,255,255,.06); }
+    main { max-width: 1140px; margin: -43px auto 0; padding: 0 20px 40px; position: relative; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr); align-items: start; gap: 22px; }
+    .stack { display: grid; gap: 18px; min-width: 0; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 19px; box-shadow: var(--shadow); overflow: hidden; }
+    .panel-head { padding: 20px 23px 16px; border-bottom: 1px solid var(--border); }
+    .panel-head h2 { font-size: 1.21rem; letter-spacing: -.025em; margin: 0 0 5px; }
+    .panel-head p { color: var(--muted); margin: 0; font-size: .88rem; }
+    .panel-body { padding: 20px 23px; }
+    .section-label { margin: 0 0 9px; text-transform: uppercase; font-size: .76rem; font-weight: 800; color: #657b88; letter-spacing: .09em; }
+    .entry { border: 1px solid var(--border); background: #fff; border-radius: 12px; padding: 14px 15px 13px; margin-bottom: 11px; }
+    .entry:last-child { margin-bottom: 0; }
+    .entry-top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+    .entry-name { font-weight: 750; font-size: .96rem; line-height: 1.3; }
+    .entry-sub { color: var(--muted); font-size: .77rem; margin-top: 3px; }
+    .score-box { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .score-input { font-weight: 800; color: var(--ink); width: 68px; border: 1px solid #bfcfd8; border-radius: 9px; font-size: 1.12rem; text-align: center; padding: 7px 4px; background: var(--surface-alt); }
+    .score-input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-bg); }
+    .unit { color: var(--muted); font-size: .79rem; }
+    input[type="range"] { accent-color: var(--brand); width: 100%; cursor: pointer; height: 22px; margin: 10px 0 0; }
+    .range-labels { display: flex; justify-content: space-between; color: #8798a4; font-size: .69rem; margin-top: -4px; }
+    .entry-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 7px; color: var(--muted); font-size: .78rem; }
+    .grade { font-weight: 800; color: #486174; }
+    .grade.good { color: var(--good); }
+    .grade.bad { color: var(--bad); }
+    .section-gap { height: 15px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn { padding: 9px 13px; border: 1px solid #bed3dd; color: #1a586c; background: white; border-radius: 10px; font-size: .82rem; font-weight: 720; }
+    .btn:hover { background: #edf7f9; }
+    .btn.quiet { color: #667786; border-color: var(--border); }
+    .btn.print { border-color: transparent; background: #e5f3f4; color: #195e70; }
+    .examples { padding: 18px 23px; background: #f9fbfc; border-top: 1px solid var(--border); }
+    .examples p { color: var(--muted); margin: 0 0 10px; font-size: .81rem; }
+    .status-line { display: flex; align-items: center; gap: 9px; font-size: .86rem; margin-bottom: 14px; }
+    .dot { height: 9px; width: 9px; border-radius: 50%; background: #bfced6; flex-shrink: 0; }
+    .dot.good { background: var(--good); }
+    .dot.bad { background: var(--bad); }
+    .summary { padding: 24px 23px; border-bottom: 1px solid var(--border); }
+    .result-panel.good { border: 2px solid #52a786; }
+    .result-panel.bad { border: 2px solid #cf6767; }
+    .result-panel.open { border: 2px solid #bfcbd4; }
+    .mobile-status { display: none; }
+    .mobile-status-symbol { font-size: 1.55rem; font-weight: 850; line-height: 1; }
+    .mobile-status-main { min-width: 0; }
+    .mobile-status-title { font-size: 1rem; line-height: 1.2; font-weight: 850; }
+    .mobile-status-sub { font-size: .74rem; opacity: .88; margin-top: 2px; }
+    .mobile-status-points { font-size: 1rem; font-weight: 850; white-space: nowrap; font-variant-numeric: tabular-nums; margin-left: auto; }
+
+    .summary .caption { font-size: .8rem; color: var(--muted); font-weight: 600; }
+    .total-row { display: flex; align-items: baseline; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 5px 0 14px; }
+    .total { font-size: clamp(2.4rem, 4vw, 3.25rem); letter-spacing: -.06em; font-weight: 850; line-height: 1.06; font-variant-numeric: tabular-nums; }
+    .total-unit { font-size: .9rem; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+    .total-note { border-radius: 25px; padding: 5px 10px; background: #edf3f6; font-size: .79rem; font-weight: 800; }
+    .progress { height: 13px; border-radius: 30px; background: #e8eef1; position: relative; overflow: hidden; }
+    .progress .fill { height: 100%; background: linear-gradient(90deg, #49a9bb, var(--brand)); border-radius: 30px; width: 0%; transition: width 160ms; }
+    .progress .half { position: absolute; height: 100%; left: 50%; top: 0; border-left: 2px dashed #162b3d; opacity: .6; }
+    .progress-labels { display: flex; justify-content: space-between; font-size: .7rem; color: #6c7f8c; padding-top: 5px; }
+    .verdict { display: flex; gap: 11px; padding: 15px; border-radius: 12px; margin-top: 18px; background: #f2f6f8; color: #4b6271; align-items: flex-start; }
+    .verdict.good { background: var(--good-bg); color: #115e43; }
+    .verdict.bad { background: var(--bad-bg); color: #9c3030; }
+    .verdict-icon { font-size: 1.35rem; line-height: 1.1; flex-shrink: 0; font-weight: 850; }
+    .verdict strong { display: block; font-size: 1rem; }
+    .verdict span:last-child { display: block; font-size: .8rem; margin-top: 3px; }
+    .rules { padding: 21px 23px 22px; }
+    .rules h3 { margin: 0 0 13px; font-size: 1rem; }
+    .rule { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; border-bottom: 1px solid #ecf1f3; }
+    .rule:last-child { border-bottom: none; padding-bottom: 0; }
+    .rule-symbol { width: 24px; height: 24px; border-radius: 50%; background: #ebf0f3; color: #667b87; display: grid; place-items: center; font-size: .9rem; font-weight: 900; flex-shrink: 0; }
+    .rule-symbol.good { color: var(--good); background: var(--good-bg); }
+    .rule-symbol.bad { color: var(--bad); background: var(--bad-bg); }
+    .rule-copy { font-size: .86rem; font-weight: 650; }
+    .rule-detail { color: var(--muted); font-size: .77rem; font-weight: 400; margin-top: 1px; }
+    .hint { border: 1px solid #d6e5ea; background: #f2f9fa; border-radius: 12px; padding: 13px 14px; color: #436572; font-size: .82rem; }
+    .oral-toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-weight: 720; }
+    .oral-toggle input { width: 19px; height: 19px; accent-color: var(--brand); margin: 2px 0 0; flex-shrink: 0; }
+    .oral-toggle:has(input:disabled) { cursor: not-allowed; opacity: .52; }
+    .oral-eligibility { background: #f2f6f8; border-radius: 10px; color: #536c7c; font-size: .82rem; padding: 10px 12px; margin-top: 12px; }
+    .oral-eligibility.ready { background: #eaf5f1; color: #195c47; }
+    .oral-score-row { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+    .oral-score-row .form-label { margin-bottom: 0; }
+    .oral-score-row .oral-number { flex: 0 0 84px; text-align: center; font-weight: 800; font-size: 1.08rem; }
+    .oral-range-labels { display: flex; justify-content: space-between; color: #8798a4; font-size: .72rem; }
+    #oralRange { margin-top: 3px; }
+    #oralMinHint { font-size: .78rem; color: #436572; font-weight: 700; }
+
+    .oral-content { display: grid; gap: 11px; margin-top: 17px; }
+    .form-label { display: block; font-size: .83rem; font-weight: 720; margin-bottom: 5px; }
+    select, .oral-number { width: 100%; border-radius: 9px; background: white; border: 1px solid #bdd0d8; padding: 10px 11px; color: var(--ink); }
+    .oral-number { max-width: 128px; }
+    .oral-eval { border-radius: 10px; background: #f1f7f8; padding: 12px 13px; font-size: .82rem; color: #345568; }
+    .oral-eval.warning { background: var(--warn-bg); color: #775017; }
+    .fine { color: var(--muted); font-size: .75rem; line-height: 1.5; }
+    .foot { margin-top: 22px; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; color: #536c7c; font-size: .82rem; }
+    .foot h2 { font-size: 1.02rem; margin: 0 0 7px; color: var(--ink); }
+    .foot p { margin: 8px 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    [hidden] { display: none !important; }
+    @media (min-width: 850px) { .result-stack { position: sticky; top: 18px; } }
+    @media (max-width: 849px) {
+      .layout { grid-template-columns: 1fr; }
+      .hero { padding-bottom: 69px; }
+      .result-stack { grid-row: 1; }
+      .mobile-status { position: sticky; top: 8px; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 11px 15px; margin: 0 0 16px; border: 2px solid #bfcbd4; border-radius: 14px; background: #f3f6f9; color: #42586a; box-shadow: 0 8px 25px rgba(18,35,52,.19); }
+      .mobile-status.good { border-color: #4da77b; color: #105a3f; background: #d8f3e5; }
+      .mobile-status.bad { border-color: #cc5d5d; color: #90282c; background: #fbe0de; }
+      .mobile-status.open { border-color: #bfcbd4; }
+    }
+    @media (max-width: 480px) { main { padding: 0 12px 24px; } .hero { padding: 27px 15px 65px; } .panel-head, .panel-body, .summary, .rules, .examples { padding-left: 15px; padding-right: 15px; } .entry { padding: 12px; } .entry-name { font-size: .9rem; } .entry-sub { font-size: .73rem; } .score-input { width: 57px; } }
+    @media print { .mobile-status { display: none !important; } .result-panel { border: 1px solid var(--border) !important; } body { background: white; } .hero { padding: 12px 0 20px; background: white; color: black; } .hero p, .eyebrow { color: #555; } main { margin: 0 auto; padding: 0; } .layout { grid-template-columns: 1fr 1fr; gap: 12px; } .panel { box-shadow: none; break-inside: avoid; } .examples, .no-print, .oral-controls { display: none !important; } .result-stack { position: static; } .foot { box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Gestreckte Abschlussprüfung · Mechatroniker:in</div>
+      <h1>Schaffe ich die Prüfung?</h1>
+      <p>Trage deine Punkte aus TAP 1 und TAP 2 ein. Du siehst sofort dein Gesamtergebnis und ob alle Bestehensregeln erfüllt sind.</p>
+      <div class="hero-tags"><span>100-Punkte-System</span><span>Live-Berechnung</span><span>Funktioniert offline</span><span>Keine Datenspeicherung oder Übertragung</span></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="mobile-status open" id="mobileStatus" role="status" aria-live="off" aria-label="Aktueller Bestehensstatus">
+      <span class="mobile-status-symbol" id="mobileStatusSymbol" aria-hidden="true">?</span>
+      <div class="mobile-status-main">
+        <div class="mobile-status-title" id="mobileStatusTitle">Noch nicht berechenbar</div>
+        <div class="mobile-status-sub" id="mobileStatusSub">Alle Ergebnisse eintragen</div>
+      </div>
+      <span class="mobile-status-points" id="mobileStatusPoints">– P.</span>
+    </div>
+    <div class="layout">
+      <div class="stack">
+        <section class="panel" aria-labelledby="eingabeTitel">
+          <div class="panel-head">
+            <h2 id="eingabeTitel">Deine Prüfungsergebnisse</h2>
+            <p>Die voreingestellten Werte sind nur ein Beispiel. Du kannst Zahlen direkt eingeben oder die Schieberegler benutzen.</p>
+          </div>
+          <div class="panel-body">
+            <h3 class="section-label">Abschlussprüfung Teil 1</h3>
+            <div id="t1Fields"></div>
+            <div class="section-gap"></div>
+            <h3 class="section-label">Abschlussprüfung Teil 2</h3>
+            <div id="t2Fields"></div>
+          </div>
+          <div class="examples no-print">
+            <p>Beispiele zum Ausprobieren</p>
+            <div class="actions">
+              <button type="button" class="btn" data-scenario="normal">Bestanden</button>
+              <button type="button" class="btn" data-scenario="highFail">Hoher Schnitt, trotzdem durchgefallen</button>
+              <button type="button" class="btn" data-scenario="weakT1">Schwache TAP 1 ausgeglichen</button>
+              <button type="button" class="btn" data-scenario="oralPossible">Mündliche Ergänzung möglich</button>
+              <button type="button" class="btn quiet" data-scenario="clear">Alle Felder leeren</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="oralTitel">
+          <div class="panel-head">
+            <h2 id="oralTitel">Mündliche Ergänzungsprüfung</h2>
+            <p>Optional: Prüfe, ob eine mündliche Prüfung ein schriftliches Ergebnis verbessern könnte.</p>
+          </div>
+          <div class="panel-body">
+            <label class="oral-toggle"><input type="checkbox" id="oralEnabled"><span>Mündliche Ergänzungsprüfung simulieren</span></label>
+            <div id="oralEligibility" class="oral-eligibility" aria-live="polite">Welche Prüfungsbereiche dafür infrage kommen, wird automatisch geprüft.</div>
+            <div id="oralFields" class="oral-content" hidden>
+              <div class="oral-controls">
+                <div>
+                  <label class="form-label" for="oralSubject">Möglicher schriftlicher Prüfungsbereich</label>
+                  <select id="oralSubject"></select>
+                </div>
+                <div>
+                  <div class="oral-score-row">
+                    <label class="form-label" for="oralScore">Simulierte mündliche Punkte</label>
+                    <input class="oral-number" id="oralScore" type="number" min="0" max="100" step="1" inputmode="numeric" value="50" aria-label="Punkte der mündlichen Ergänzungsprüfung">
+                  </div>
+                  <label class="sr-only" for="oralRange">Mündliche Punkte mit dem Schieberegler ändern</label>
+                  <input type="range" id="oralRange" min="0" max="100" step="1" value="50">
+                  <div class="oral-range-labels"><span>0</span><span>50</span><span>100</span></div>
+                  <div id="oralMinHint">Benötigte Mindestpunktzahl wird berechnet.</div>
+                </div>
+              </div>
+              <div id="oralInfo" class="oral-eval" aria-live="polite">Die mündliche Ergänzungsprüfung ist eine Simulation.</div>
+              <div class="fine">Nach § 8 Abs. 3 MechatronikerAusbV zählt die bisherige schriftliche Bewertung doppelt, die mündliche einfach: (2 × schriftlich + mündlich) ÷ 3. Nur ein schriftlicher Prüfungsbereich kann ergänzt werden. Die Ergänzung ist nur auf Antrag und nur dann möglich, wenn sie für das Bestehen entscheidend sein kann.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="stack result-stack" aria-label="Prüfungsergebnis">
+        <section class="panel result-panel" id="resultPanel" aria-labelledby="ergebnisTitel">
+          <div class="summary">
+            <div class="status-line"><span class="dot" id="statusDot"></span><span id="statusLabel">Beispielberechnung</span></div>
+            <div class="caption" id="ergebnisTitel">Gewichtetes Gesamtergebnis</div>
+            <div class="total-row"><div class="total"><span id="totalValue">–</span><span class="total-unit"> / 100 P.</span></div><span class="total-note" id="totalGrade">–</span></div>
+            <div class="progress" role="progressbar" id="progress" aria-label="Gesamtergebnis in Punkten" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="progressFill"></div><div class="half" aria-hidden="true"></div></div>
+            <div class="progress-labels"><span>0 Punkte</span><span>50 Punkte (Bestehensgrenze)</span><span>100</span></div>
+            <div class="verdict" id="verdict" role="status" aria-live="polite"><span class="verdict-icon" id="verdictIcon">?</span><div><strong id="verdictHeadline">Berechnung läuft …</strong><span id="verdictText">Prüfungsergebnisse eingeben</span></div></div>
+          </div>
+          <div class="rules">
+            <h3>Alle vier Bedingungen müssen erfüllt sein</h3>
+            <div class="rule"><span class="rule-symbol" id="ruleIcon1">?</span><div><div class="rule-copy">1. Gesamt mindestens 50 Punkte</div><div class="rule-detail" id="ruleText1">40 % TAP 1 + 60 % TAP 2</div></div></div>
+            <div class="rule"><span class="rule-symbol" id="ruleIcon2">?</span><div><div class="rule-copy">2. Arbeitsauftrag mindestens 50 Punkte</div><div class="rule-detail" id="ruleText2">Der praktische Arbeitsauftrag muss ausreichend sein.</div></div></div>
+            <div class="rule"><span class="rule-symbol" id="ruleIcon3">?</span><div><div class="rule-copy">3. Mindestens zwei schriftliche Bereiche mit 50+ Punkten</div><div class="rule-detail" id="ruleText3">Arbeitsplanung, Funktionsanalyse und WiSo</div></div></div>
+            <div class="rule"><span class="rule-symbol" id="ruleIcon4">?</span><div><div class="rule-copy">4. Kein TAP-2-Bereich unter 30 Punkten</div><div class="rule-detail" id="ruleText4">Keine Note 6 in TAP 2</div></div></div>
+          </div>
+        </section>
+        <div class="hint"><strong>Gut zu wissen:</strong> TAP 1 muss für sich genommen nicht bestanden sein. Eine schwache TAP 1 kann durch gute Ergebnisse in TAP 2 ausgeglichen werden. Umgekehrt reicht ein guter Gesamtschnitt allein nicht, wenn eine TAP-2-Bestehensbedingung verletzt ist.</div>
+        <button class="btn print no-print" type="button" onclick="window.print()">Ergebnis drucken</button>
+      </aside>
+    </div>
+
+    <footer class="foot">
+      <h2>Rechtsgrundlage und Hinweis</h2>
+      <p>Dieser Lernrechner setzt die Gewichtung und die Bestehensregeln des <a href="https://www.gesetze-im-internet.de/mechatronikerausbv/__8.html" target="_blank" rel="noopener noreferrer">§ 8 Mechatroniker-Ausbildungsverordnung</a> um. Für die Noten gilt der <a href="https://www.ihk.de/duesseldorf/ausbildung/ausbildungspruefungen/pruefung-von-a-z/notenschluessel-2596894" target="_blank" rel="noopener noreferrer">bundeseinheitliche IHK-Notenschlüssel</a>: Note 1 ab 92, Note 2 ab 81, Note 3 ab 67, Note 4 ab 50, Note 5 ab 30 und Note 6 darunter.</p>
+      <p>Die Berechnung verwendet die eingegebenen Punkte und zeigt gewichtete Zwischenergebnisse mit zwei Dezimalstellen. Offizielle Rundungs- und Bewertungsentscheidungen der zuständigen IHK können an knappen Notengrenzen zu einem anderen Ergebnis führen. Verbindlich sind ausschließlich die offiziellen Prüfungsergebnisse. Der Rechner benötigt keine Internetverbindung und sendet keine Eingaben an einen Server.</p>
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+    const parts = [
+      { id: "t1", name: "Arbeiten an einem mechatronischen Teilsystem", short: "TAP 1", group: 1, weight: 40 },
+      { id: "aa", name: "Arbeitsauftrag", short: "Arbeitsauftrag", group: 2, weight: 30 },
+      { id: "ap", name: "Arbeitsplanung", short: "Arbeitsplanung", group: 2, weight: 12 },
+      { id: "fa", name: "Funktionsanalyse", short: "Funktionsanalyse", group: 2, weight: 12 },
+      { id: "wiso", name: "Wirtschafts- und Sozialkunde", short: "WiSo", group: 2, weight: 6 }
+    ];
+    const written = ["ap", "fa", "wiso"];
+    const el = id => document.getElementById(id);
+    const fmt = n => n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtFlex = n => n.toLocaleString("de-DE", { maximumFractionDigits: 2 });
+    const note = n => n === null ? null : n >= 92 ? 1 : n >= 81 ? 2 : n >= 67 ? 3 : n >= 50 ? 4 : n >= 30 ? 5 : 6;
+    const descriptions = ["", "sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend"];
+    const scenarios = {
+      normal: { t1: 60, aa: 70, ap: 55, fa: 35, wiso: 60 },
+      highFail: { t1: 90, aa: 80, ap: 35, fa: 35, wiso: 90 },
+      weakT1: { t1: 25, aa: 85, ap: 70, fa: 60, wiso: 45 },
+      oralPossible: { t1: 50, aa: 75, ap: 40, fa: 40, wiso: 70 }
+    };
+    let hasEdited = false;
+
+    function makeEntry(part) {
+      const item = document.createElement("div");
+      item.className = "entry";
+      item.innerHTML = `
+        <div class="entry-top">
+          <div><div class="entry-name">${part.name}</div><div class="entry-sub">Gewichtung: ${part.weight} % des Gesamtergebnisses</div></div>
+          <div class="score-box"><label class="sr-only" for="val-${part.id}">Punkte in ${part.name}</label><input class="score-input" id="val-${part.id}" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="–"><span class="unit">P.</span></div>
+        </div>
+        <label class="sr-only" for="range-${part.id}">Punkte in ${part.name} mit Schieberegler ändern</label>
+        <input type="range" id="range-${part.id}" min="0" max="100" step="1" value="50">
+        <div class="range-labels"><span>0</span><span>50</span><span>100</span></div>
+        <div class="entry-foot"><span id="contrib-${part.id}">–</span><span class="grade" id="grade-${part.id}">–</span></div>`;
+      el(part.group === 1 ? "t1Fields" : "t2Fields").appendChild(item);
+      el(`val-${part.id}`).addEventListener("input", () => {
+        hasEdited = true;
+        const val = parsePoint(el(`val-${part.id}`).value);
+        if (val !== null) el(`range-${part.id}`).value = String(val);
+        render();
+      });
+      el(`range-${part.id}`).addEventListener("input", () => {
+        hasEdited = true;
+        el(`val-${part.id}`).value = el(`range-${part.id}`).value;
+        render();
+      });
+    }
+
+    function parsePoint(value) {
+      const s = String(value).trim();
+      if (!s) return null;
+      const n = Number(s);
+      return Number.isInteger(n) && n >= 0 && n <= 100 ? n : null;
+    }
+    function readValues() {
+      return Object.fromEntries(parts.map(p => [p.id, parsePoint(el(`val-${p.id}`).value)]));
+    }
+    function isComplete(values) { return parts.every(p => values[p.id] !== null); }
+    function calc(values) {
+      const total = parts.reduce((sum, p) => sum + values[p.id] * p.weight / 100, 0);
+      const writtenPassed = written.filter(k => values[k] >= 50).length;
+      const rules = [total >= 50 - 1e-9, values.aa >= 50, writtenPassed >= 2, ["aa", ...written].every(k => values[k] >= 30)];
+      return { total, writtenPassed, rules, passed: rules.every(Boolean) };
+    }
+    function setRule(i, state, detail) {
+      const symbol = el(`ruleIcon${i}`);
+      symbol.className = "rule-symbol" + (state === true ? " good" : state === false ? " bad" : "");
+      symbol.textContent = state === null ? "?" : state ? "✓" : "×";
+      el(`ruleText${i}`).textContent = detail;
+    }
+    // Bei einer schriftlichen Bewertung unter 50 Punkten kommt eine Ergänzung
+    // nur in Betracht, wenn EIN Bereich bei bis zu 100 mündlichen Punkten
+    // das Bestehen der gesamten Abschlussprüfung ermöglichen kann (§ 8 Abs. 3).
+    function minimumOralScore(values, subject) {
+      if (values[subject] >= 50) return null;
+      for (let oral = 0; oral <= 100; oral++) {
+        const next = { ...values, [subject]: (2 * values[subject] + oral) / 3 };
+        if (calc(next).passed) return oral;
+      }
+      return null;
+    }
+
+    function eligibleOralSubjects(values, base) {
+      if (!base || base.passed) return [];
+      return written.map(id => ({
+        id,
+        min: minimumOralScore(values, id),
+        label: parts.find(p => p.id === id).name
+      })).filter(choice => choice.min !== null);
+    }
+
+    function updateOralChoices(values, base) {
+      const choices = eligibleOralSubjects(values, base);
+      const selector = el("oralSubject");
+      const oldValue = selector.value;
+      selector.replaceChildren();
+      for (const choice of choices) {
+        const option = document.createElement("option");
+        option.value = choice.id;
+        option.textContent = `${choice.label} (mündlich mind. ${choice.min} P.)`;
+        selector.appendChild(option);
+      }
+      if (choices.some(c => c.id === oldValue)) selector.value = oldValue;
+      const toggle = el("oralEnabled");
+      toggle.disabled = choices.length === 0;
+      if (toggle.disabled) toggle.checked = false;
+      const eligibility = el("oralEligibility");
+      eligibility.className = "oral-eligibility" + (choices.length ? " ready" : "");
+      if (!base) {
+        eligibility.textContent = "Trage zuerst alle fünf Prüfungsergebnisse ein.";
+      } else if (base.passed) {
+        eligibility.textContent = "Du hast bereits bestanden. Eine mündliche Ergänzungsprüfung ist deshalb nicht zulässig.";
+      } else if (!choices.length) {
+        eligibility.textContent = "Keine mündliche Ergänzungsprüfung möglich: Auch mit 100 mündlichen Punkten in einem einzelnen schriftlichen Bereich wären nicht alle Bestehensbedingungen erfüllt.";
+      } else {
+        eligibility.textContent = `Rechnerisch möglich in ${choices.length === 1 ? "einem Bereich" : choices.length + " Bereichen"}. Du kannst einen davon wählen. Die Auswahl zeigt nur Fächer, in denen eine Ergänzung zum Bestehen führen könnte.`;
+      }
+      return choices;
+    }
+
+    function applyScenario(name) {
+      const data = scenarios[name];
+      for (const p of parts) {
+        el(`val-${p.id}`).value = data ? data[p.id] : "";
+        el(`range-${p.id}`).value = data ? data[p.id] : 50;
+      }
+      el("oralEnabled").checked = false;
+      el("oralScore").value = "50";
+      el("oralRange").value = "50";
+      el("oralFields").hidden = true;
+      hasEdited = name !== "normal";
+      render();
+    }
+
+    function render() {
+      const values = readValues();
+      for (const p of parts) {
+        const input = el(`val-${p.id}`);
+        const v = values[p.id];
+        input.setAttribute("aria-invalid", input.value.trim() !== "" && v === null ? "true" : "false");
+        const gradeText = el(`grade-${p.id}`);
+        gradeText.textContent = v === null ? "Noch keine Punkte" : `Note ${note(v)} · ${descriptions[note(v)]}`;
+        gradeText.className = "grade" + (v === null ? "" : v >= 50 ? " good" : " bad");
+        el(`contrib-${p.id}`).textContent = v === null ? "Noch offen" : `Anteil: ${fmt(v * p.weight / 100)} / ${p.weight} Gesamtpunkte`;
+      }
+      const complete = isComplete(values);
+      const base = complete ? calc(values) : null;
+      const choices = updateOralChoices(values, base);
+      const oralOn = el("oralEnabled").checked;
+      el("oralFields").hidden = !oralOn;
+      const selected = el("oralSubject").value;
+      const choice = choices.find(c => c.id === selected);
+      const spoken = parsePoint(el("oralScore").value);
+      el("oralScore").setAttribute("aria-invalid", oralOn && spoken === null ? "true" : "false");
+      const oralInfo = el("oralInfo");
+      oralInfo.className = "oral-eval";
+      const scores = { ...values };
+      const oralApplied = !!(oralOn && choice && spoken !== null);
+
+      if (oralOn && choice) {
+        const short = parts.find(p => p.id === selected).short;
+        el("oralMinHint").textContent = `Mindestens ${choice.min} mündliche Punkte nötig, um die Prüfung insgesamt zu bestehen.`;
+        if (oralApplied) {
+          scores[selected] = (2 * values[selected] + spoken) / 3;
+          const after = calc(scores);
+          oralInfo.innerHTML = `<strong>${short}:</strong> Schriftlich ${values[selected]} P., mündlich ${spoken} P. ⇒ (2 × ${values[selected]} + ${spoken}) ÷ 3 = <strong>${fmtFlex(scores[selected])} P.</strong> im ergänzten Bereich. ${after.passed ? "Damit wäre die Abschlussprüfung rechnerisch bestanden." : "Damit wären noch nicht alle Bestehensbedingungen erfüllt."}`;
+          // Ursprüngliches schriftliches Ergebnis bleibt im Zahlenfeld erhalten.
+          el(`contrib-${selected}`).textContent = `Schriftlich: ${values[selected]} P. · mit Ergänzung: ${fmtFlex(scores[selected])} P.`;
+          el(`grade-${selected}`).textContent = `Schriftlich Note ${note(values[selected])} · mit Ergänzung Note ${note(scores[selected])}`;
+        } else {
+          oralInfo.className += " warning";
+          oralInfo.textContent = "Bitte eine gültige mündliche Punktzahl zwischen 0 und 100 eingeben.";
+        }
+      }
+
+      // Eine leere/ungültige mündliche Eingabe darf niemals stillschweigend
+      // als bestandene Simulation gelten; die reguläre Berechnung bleibt sichtbar.
+      const result = complete ? calc(scores) : null;
+      const status = el("verdict");
+      const tone = result === null ? "open" : result.passed ? "good" : "bad";
+      status.className = "verdict" + (tone === "open" ? "" : " " + tone);
+      el("resultPanel").className = "panel result-panel " + tone;
+      el("statusDot").className = "dot" + (tone === "open" ? "" : " " + tone);
+      const numOpen = parts.filter(p => values[p.id] === null).length;
+      el("totalValue").textContent = result === null ? "–" : fmt(result.total);
+      el("totalGrade").textContent = result === null ? "Note –" : `ca. Note ${note(result.total)}`;
+      el("progressFill").style.width = `${result ? Math.min(100, Math.max(0, result.total)) : 0}%`;
+      el("progress").setAttribute("aria-valuenow", result ? String(result.total.toFixed(2)) : "0");
+
+      // Immer sichtbare, auch beim Scrollen angeheftete Anzeige für Smartphones.
+      el("mobileStatus").className = "mobile-status " + tone;
+      el("mobileStatusSymbol").textContent = tone === "open" ? "?" : result.passed ? "✓" : "×";
+      el("mobileStatusTitle").textContent = tone === "open" ? "Noch nicht berechenbar" : result.passed ? "BESTANDEN" : "NICHT BESTANDEN";
+      el("mobileStatusSub").textContent = tone === "open" ? `${numOpen} ${numOpen === 1 ? "Ergebnis fehlt" : "Ergebnisse fehlen"}` : oralApplied ? "Mit mündlicher Ergänzung (Simulation)" : "Aktueller Prüfungsstand (Simulation)";
+      el("mobileStatusPoints").textContent = result === null ? "– P." : `${fmtFlex(result.total)} P.`;
+
+      if (result === null) {
+        el("statusLabel").textContent = `${numOpen} ${numOpen === 1 ? "Wert fehlt" : "Werte fehlen"}`;
+        el("verdictIcon").textContent = "?";
+        el("verdictHeadline").textContent = "Noch nicht berechenbar";
+        el("verdictText").textContent = "Trage in allen fünf Prüfungsbereichen Punkte zwischen 0 und 100 ein.";
+        for (let i = 1; i <= 4; i++) setRule(i, null, ["40 % TAP 1 + 60 % TAP 2", "Der Arbeitsauftrag muss ausreichend sein.", "Arbeitsplanung, Funktionsanalyse und WiSo", "Keine Note 6 in TAP 2"][i - 1]);
+      } else {
+        el("statusLabel").textContent = oralApplied ? "Mit mündlicher Ergänzungsprüfung (Simulation)" : hasEdited ? "Deine Berechnung" : "Beispielberechnung";
+        el("verdictIcon").textContent = result.passed ? "✓" : "×";
+        el("verdictHeadline").textContent = result.passed ? "Prüfung rechnerisch bestanden" : "Prüfung rechnerisch nicht bestanden";
+        el("verdictText").textContent = result.passed
+          ? "Alle vier Bestehensbedingungen sind erfüllt."
+          : "Mindestens eine Bestehensbedingung ist nicht erfüllt. Die roten Markierungen zeigen, welche.";
+        setRule(1, result.rules[0], `${fmt(result.total)} Punkte im Gesamtergebnis`);
+        setRule(2, result.rules[1], `${fmtFlex(scores.aa)} Punkte im Arbeitsauftrag`);
+        setRule(3, result.rules[2], `${result.writtenPassed} von 3 schriftlichen Bereichen ausreichend oder besser`);
+        const tooLow = ["aa", ...written].filter(k => scores[k] < 30);
+        setRule(4, result.rules[3], tooLow.length ? `Unter 30 Punkten: ${tooLow.map(k => parts.find(p => p.id === k).short).join(", ")}` : "Kein TAP-2-Bereich ist ungenügend.");
+      }
+    }
+
+    for (const p of parts) makeEntry(p);
+    document.querySelectorAll("[data-scenario]").forEach(btn => btn.addEventListener("click", () => applyScenario(btn.dataset.scenario)));
+    el("oralEnabled").addEventListener("change", () => { hasEdited = true; render(); });
+    el("oralScore").addEventListener("input", () => {
+      hasEdited = true;
+      const val = parsePoint(el("oralScore").value);
+      if (val !== null) el("oralRange").value = String(val);
+      render();
+    });
+    el("oralRange").addEventListener("input", () => {
+      hasEdited = true;
+      el("oralScore").value = el("oralRange").value;
+      render();
+    });
+    el("oralSubject").addEventListener("change", () => { hasEdited = true; render(); });
+    applyScenario("normal");
+  </script>
+</body>
+</html>
